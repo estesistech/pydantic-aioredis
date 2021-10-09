@@ -3,13 +3,12 @@ import asyncio
 import json
 import time
 from datetime import date
-from datetime import datetime
 from random import randint
 from random import random
 from random import sample
 from typing import Any
-from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 
 import aioredis
@@ -23,32 +22,6 @@ from pydantic_aioredis import RedisConfig
 from pydantic_aioredis import Store
 
 
-def json_serial(obj):
-    """JSON serializer for objects not serializable by default json code"""
-
-    if isinstance(obj, (datetime, date)):
-        return obj.isoformat()
-    raise TypeError("Type %s not serializable" % type(obj))
-
-
-class JsonModel(BaseModel):
-    @classmethod
-    def serialize_partially(cls, data: Dict[str, Any]):
-        """Converts non primitive data types into str by json dumping"""
-        for key in cls._json_fields:
-            data[key] = json.dumps(data[key], default=json_serial)
-
-        return data
-
-    @classmethod
-    def deserialize_partially(cls, data: Dict[bytes, Any]):
-        """Deserializes non primitive data types from json"""
-        return {
-            key: value if key not in cls._json_fields else json.loads(value)
-            for key, value in data.items()
-        }
-
-
 # Create models as you would create pydantic models i.e. using typings
 class BookBase(BaseModel):
     title: str
@@ -56,13 +29,14 @@ class BookBase(BaseModel):
     published_on: date
     in_stock: bool = True
     isbn: str
+    extra_info: Optional[str] = None
 
 
 class Book(BookBase, Model):
     _primary_key_field: str = "title"
 
 
-class Library(JsonModel, Model):
+class Library(Model):
     # the _primary_key_field is mandatory
     _primary_key_field: str = "name"
     _json_fields: List[str] = ["books_in_library"]
@@ -71,7 +45,7 @@ class Library(JsonModel, Model):
     books_in_library: List[BookBase]
 
 
-class Librarian(JsonModel, Model):
+class Librarian(Model):
     _primary_key_field = "name"
     _json_fields: List[str] = ["qualifications"]
     name: str
@@ -181,14 +155,20 @@ async def benchmark(books: List[Book], libraries: List[Library], librarians):
     return to_return
 
 
-async def run_benchmark(number_of_iterations: int = 1000):
+async def run_benchmark(
+    number_of_iterations: int = 1000, number_of_objects: int = 1000
+):
     tqdm.write(
         f"Starting benchmark run of {number_of_iterations} iterations. Will output data at the end of the run"
     )
     tqdm.write(
         "Total run time will differ from benchmark reports due to setup and cleanup tasks"
     )
-    books, libraries, librarians = await setup()
+    books, libraries, librarians = await setup(
+        count_of_books=number_of_objects,
+        count_of_libraries=number_of_objects,
+        count_of_librarians=number_of_objects,
+    )
     results = {}
     test_start = time.perf_counter()
     tqdm.write("Setup complete, starting benchmarks")
@@ -221,7 +201,16 @@ if __name__ == "__main__":
         default=10,
         help="Number of iterations to run",
     )
+    parser.add_argument(
+        "-n",
+        "--number-of-objects",
+        action="store",
+        default=1000,
+        help="Number of objects to generate",
+    )
     args = parser.parse_args()
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_benchmark())
+    loop.run_until_complete(
+        run_benchmark(int(args.iterations), int(args.number_of_objects))
+    )

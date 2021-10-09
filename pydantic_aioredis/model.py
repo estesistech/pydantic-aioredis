@@ -1,5 +1,4 @@
 """Module containing the model classes"""
-import uuid
 from collections.abc import Generator
 from typing import Any
 from typing import Dict
@@ -53,9 +52,7 @@ class Model(_AbstractModel):
                 data_list = [data]
 
             for record in data_list:
-                primary_key_value = getattr(
-                    record, cls._primary_key_field, str(uuid.uuid4())
-                )
+                primary_key_value = getattr(record, cls._primary_key_field)
                 name = cls.__get_primary_key(primary_key_value=primary_key_value)
                 mapping = cls.serialize_partially(record.dict())
                 pipeline.hset(name=name, mapping=mapping)
@@ -121,7 +118,7 @@ class Model(_AbstractModel):
     @classmethod
     async def select(
         cls, columns: Optional[List[str]] = None, ids: Optional[List[Any]] = None
-    ):
+    ) -> Optional[List[Any]]:
         """
         Selects given rows or sets of rows in the table
         """
@@ -158,9 +155,11 @@ class Model(_AbstractModel):
             return [cls(**cls.deserialize_partially(record)) for record in response]
 
         return [
-            {
-                field: bytes_to_string(record[index])
-                for index, field in enumerate(columns)
-            }
+            cls.deserialize_partially(
+                {
+                    field: bytes_to_string(record[index])
+                    for index, field in enumerate(columns)
+                }
+            )
             for record in response
         ]
