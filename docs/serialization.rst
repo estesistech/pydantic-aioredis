@@ -19,10 +19,3 @@ Complex data types are dumped to json with json.dumps().
 Custom serialization is possible by overriding the serialize_partially and deserialize_partially methods in `AbstractModel <https://github.com/andrewthetechie/pydantic-aioredis/blob/main/pydantic_aioredis/abstract.py#L32>`_.
 
 It is also possilbe to override json_default in AbstractModel. json_default is a callable used to convert any objects of a type json.dump cannot natively dump to string.
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

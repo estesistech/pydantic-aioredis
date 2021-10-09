@@ -78,11 +78,3 @@ CI
 CI is run via Github Actions on all PRs and pushes to the main branch. 
 
 Releases are automatically released by Github Actions to Pypi.
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

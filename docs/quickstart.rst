@@ -17,7 +17,7 @@ Install the package
 
 
 Quick Usage
-^^^^^
+^^^^^^^^^^^
 
 Import the ``Store``\ , the ``RedisConfig`` and the ``Model`` classes.
 
@@ -84,12 +84,3 @@ Store and RedisConfig let you configure and customize the connection to your red
 
      # Delete any number of items
      await Library.delete(ids=["The Grand Library"])
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
