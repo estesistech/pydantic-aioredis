@@ -135,8 +135,8 @@ Environment Setup
 * 
   Install the dependencies
 
-   .. code-block::
-      make setup
+ .. code-block::
+   make setup
 
 How to Run Tests
 ^^^^^^^^^^^^^^^^
@@ -145,24 +145,14 @@ How to Run Tests
 * 
   Run the test command to run tests on only python 3.9
 
-   .. code-block::
-      make test
-
-   or
-
-   .. code-block::
-      pytest
+.. code-block::
+   pytest
 
 * 
   Run the tox command to run all python version tests
 
-   .. code-block::
-      make tox
-   
-   or
-
-   .. code-block::
-      tox
+.. code-block::
+   tox
 
 Test Requirements
 ^^^^^^^^^^^^^^^^^
