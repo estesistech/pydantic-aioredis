@@ -19,6 +19,9 @@ repos:
     - id: python-no-eval
     - id: python-no-log-warn
     - id: python-use-type-annotations
+    - id: rst-backticks
+    - id: rst-directive-colons
+    - id: rst-inline-touching-normal
 -   repo: https://github.com/asottile/reorder_python_imports
     rev: v2.4.0
     hooks:
