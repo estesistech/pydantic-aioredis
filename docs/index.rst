@@ -136,6 +136,7 @@ Environment Setup
   Install the dependencies
 
  .. code-block::
+
    make setup
 
 How to Run Tests
@@ -146,12 +147,14 @@ How to Run Tests
   Run the test command to run tests on only python 3.9
 
 .. code-block::
+
    pytest
 
 * 
   Run the tox command to run all python version tests
 
 .. code-block::
+
    tox
 
 Test Requirements
@@ -170,6 +173,7 @@ lint your code for you.
 You can run the linting manually with make
 
 .. code-block::
+
    make lint
 
 CI
