@@ -40,7 +40,7 @@ Install the package
     
     pip install pydantic-aioredis
 
-### Usage
+### Quick Usage
 Import the `Store`, the `RedisConfig` and the `Model` classes and use accordingly
 
     
