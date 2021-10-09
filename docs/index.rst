@@ -145,30 +145,24 @@ How to Run Tests
 * 
   Run the test command to run tests on only python 3.9
 
-  ``` {.sourceCode .bash}
-  make test
+   .. code-block::
+      make test
 
-  .. code-block::
+   or
 
-
-     or
-
-     ``` {.sourceCode .bash}
-     pytest
+   .. code-block::
+      pytest
 
 * 
   Run the tox command to run all python version tests
 
-  ``` {.sourceCode .bash}
-  make tox
+   .. code-block::
+      make tox
+   
+   or
 
-  .. code-block::
-
-
-     or
-
-     ``` {.sourceCode .base}
-     tox
+   .. code-block::
+      tox
 
 Test Requirements
 ^^^^^^^^^^^^^^^^^
@@ -185,8 +179,8 @@ lint your code for you.
 
 You can run the linting manually with make
 
-``{.sourceCode .bash}
-make lint``
+.. code-block::
+   make lint
 
 CI
 --
@@ -199,14 +193,6 @@ License
 -------
 
 Licensed under the `MIT License <./LICENSE>`_
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   module
-
 
 
 Indices and tables
