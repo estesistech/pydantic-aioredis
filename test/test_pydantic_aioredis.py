@@ -163,7 +163,7 @@ async def test_select_single_content(redis_store):
 
     assert response[0]["title"] == books[1].title
     assert response[0]["author"] == books[1].author
-    assert response[0]["in_stock"] == str(books[1].in_stock)
+    assert response[0]["in_stock"] == books[1].in_stock
     with pytest.raises(KeyError):
         response[0]["published_on"]
 

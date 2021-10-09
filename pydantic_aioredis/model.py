@@ -121,7 +121,7 @@ class Model(_AbstractModel):
     @classmethod
     async def select(
         cls, columns: Optional[List[str]] = None, ids: Optional[List[Any]] = None
-    ):
+    ) -> Optional[List[Any]]:
         """
         Selects given rows or sets of rows in the table
         """
@@ -158,9 +158,11 @@ class Model(_AbstractModel):
             return [cls(**cls.deserialize_partially(record)) for record in response]
 
         return [
-            {
-                field: bytes_to_string(record[index])
-                for index, field in enumerate(columns)
-            }
+            cls.deserialize_partially(
+                {
+                    field: bytes_to_string(record[index])
+                    for index, field in enumerate(columns)
+                }
+            )
             for record in response
         ]
