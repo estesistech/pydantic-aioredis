@@ -116,7 +116,7 @@ multiple python versions easily.
 -   Clone the repo and enter its root folder
 
     ``` {.sourceCode .bash}
-    git clone https://github.com/sopherapps/pydantic-redis.git && cd pydantic-redis
+    git clone https://github.com/andrewthetechie/pydantic-aioredis.git && cd pydantic-aioredis
     ```
 
 -   Create a python 3.9 virtual environment and activate it. We suggest
