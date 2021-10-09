@@ -114,8 +114,8 @@ class _AbstractModel(BaseModel):
             if getattr(cls.__fields__[field], "shape", None) in JSON_DUMP_SHAPES:
                 data[field] = json.loads(data[field])
             if getattr(cls.__fields__[field], "allow_none", False):
-                if data[field] is None:
-                    data[field] = "None"
+                if data[field] == "None":
+                    data[field] = None
         return data
 
     @classmethod

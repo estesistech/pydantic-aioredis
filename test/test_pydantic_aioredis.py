@@ -1,5 +1,9 @@
 """Tests for the redis orm"""
 from datetime import date
+from random import randint
+from random import sample
+from typing import List
+from typing import Optional
 
 import pytest
 
@@ -41,6 +45,30 @@ books = [
     ),
 ]
 
+editions = ["first", "second", "third", "hardbound", "paperback", "ebook"]
+
+
+class ExtendedBook(Book):
+    editions: List[Optional[str]]
+
+
+class TestModelWithNone(Model):
+    _primary_key_field = "name"
+    name: str
+    optional_field: Optional[str]
+
+
+extended_books = [
+    ExtendedBook(**book.dict(), editions=sample(editions, randint(0, len(editions))))
+    for book in books
+]
+extended_books[0].editions = list()
+
+test_models = [
+    TestModelWithNone(name="test", optional_field="test"),
+    TestModelWithNone(name="test2"),
+]
+
 
 @pytest.fixture()
 async def redis_store(redis_server):
@@ -51,13 +79,11 @@ async def redis_store(redis_server):
         life_span_in_seconds=3600,
     )
     store.register_model(Book)
+    store.register_model(ExtendedBook)
+    store.register_model(TestModelWithNone)
     yield store
     keys = [f"book_%&_{book.title}" for book in books]
     await store.redis_store.delete(*keys)
-
-
-class ModelWithoutPrimaryKey(Model):
-    title: str
 
 
 def test_redis_config_redis_url():
@@ -75,6 +101,10 @@ def test_redis_config_redis_url():
 
 def test_register_model_without_primary_key(redis_store):
     """Throws error when a model without the _primary_key_field class variable set is registered"""
+
+    class ModelWithoutPrimaryKey(Model):
+        title: str
+
     with pytest.raises(AttributeError, match=r"_primary_key_field"):
         redis_store.register_model(ModelWithoutPrimaryKey)
 
@@ -92,59 +122,74 @@ def test_store_model(redis_store):
         redis_store.model("Notabook")
 
 
+parameters = [
+    (pytest.lazy_fixture("redis_store"), books, Book),
+    (pytest.lazy_fixture("redis_store"), extended_books, ExtendedBook),
+    (pytest.lazy_fixture("redis_store"), test_models, TestModelWithNone),
+]
+
+
 @pytest.mark.asyncio
-async def test_bulk_insert(redis_store):
+@pytest.mark.parametrize("store, models, model_class", parameters)
+async def test_bulk_insert(store, models, model_class):
     """Providing a list of Model instances to the insert method inserts the records in redis"""
-    keys = [f"book_%&_{book.title}" for book in books]
-    await redis_store.redis_store.delete(*keys)
+    keys = [
+        f"{type(model).__name__.lower()}_%&_{getattr(model, type(model)._primary_key_field)}"
+        for model in models
+    ]
+    # keys = [f"book_%&_{book.title}" for book in models]
+    await store.redis_store.delete(*keys)
 
     for key in keys:
-        book_in_redis = await redis_store.redis_store.hgetall(name=key)
+        book_in_redis = await store.redis_store.hgetall(name=key)
         assert book_in_redis == {}
 
-    await Book.insert(books)
+    await model_class.insert(models)
 
-    async with redis_store.redis_store.pipeline() as pipeline:
+    async with store.redis_store.pipeline() as pipeline:
         for key in keys:
             pipeline.hgetall(name=key)
-        books_in_redis = await pipeline.execute()
-    books_in_redis_as_models = [
-        Book(**Book.deserialize_partially(book)) for book in books_in_redis
+        models_in_redis = await pipeline.execute()
+    models_deserialized = [
+        model_class(**model_class.deserialize_partially(model))
+        for model in models_in_redis
     ]
-    assert books == books_in_redis_as_models
+    assert models == models_deserialized
 
 
 @pytest.mark.asyncio
-async def test_insert_single(redis_store):
+@pytest.mark.parametrize("store, models, model_class", parameters)
+async def test_insert_single(store, models, model_class):
     """
     Providing a single Model instance
     """
-    key = f"book_%&_{books[0].title}"
-    book = await redis_store.redis_store.hgetall(name=key)
-    assert book == {}
+    key = f"{type(models[0]).__name__.lower()}_%&_{getattr(models[0], type(models[0])._primary_key_field)}"
+    model = await store.redis_store.hgetall(name=key)
+    assert model == {}
 
-    await Book.insert(books[0])
+    await model_class.insert(models[0])
 
-    book = await redis_store.redis_store.hgetall(name=key)
-    book_as_model = Book(**Book.deserialize_partially(book))
-    assert books[0] == book_as_model
+    model = await store.redis_store.hgetall(name=key)
+    model_deser = model_class(**model_class.deserialize_partially(model))
+    assert models[0] == model_deser
 
 
 @pytest.mark.asyncio
-async def test_select_default(redis_store):
+@pytest.mark.parametrize("store, models, model_class", parameters)
+async def test_select_default(store, models, model_class):
     """Selecting without arguments returns all the book models"""
-    await Book.insert(books)
-    response = await Book.select()
-    sorted_books = sorted(books, key=lambda x: x.title)
-    sorted_response = sorted(response, key=lambda x: x.title)
-    assert sorted_books == sorted_response
+    await model_class.insert(models)
+    response = await model_class.select()
+    for model in response:
+        assert model in models
 
 
 @pytest.mark.asyncio
-async def test_select_no_contents(redis_store):
+@pytest.mark.parametrize("store, models, model_class", parameters)
+async def test_select_no_contents(store, models, model_class):
     """Test that we get None when there are no models"""
-    await redis_store.redis_store.flushall()
-    response = await Book.select()
+    await store.redis_store.flushall()
+    response = await model_class.select()
 
     assert response is None
 
@@ -271,3 +316,19 @@ async def test_delete_multiple(redis_store):
         Book(**Book.deserialize_partially(book)) for book in books_in_redis
     ]
     assert books_left_in_db == books_in_redis_as_models
+
+
+@pytest.mark.asyncio
+async def test_unserializable_object(redis_store):
+    class MyClass(object):
+        ...
+
+    class TestModel(Model):
+        _primary_key_field = "name"
+        name: str
+        object: MyClass
+
+    redis_store.register_model(TestModel)
+    this_model = TestModel(name="test", object=MyClass())
+    with pytest.raises(TypeError):
+        await TestModel.insert(this_model)
