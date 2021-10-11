@@ -7,9 +7,5 @@ FastAPI
 -------
 The FastAPI extra adds a new base model called FastAPIModel. It has a single additional classmethod, select_or_404.
 
-.. autosummary::
-   :toctree: _autosummary
-   :template: custom-module-template.rst
-   :recursive:
-
-   pydantic_aioredis.ext.FastAPI
+.. automodule:: pydantic_aioredis.ext.FastAPI
+    ::member::
