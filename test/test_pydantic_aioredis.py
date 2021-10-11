@@ -54,13 +54,13 @@ class ExtendedBook(Book):
     editions: List[Optional[str]]
 
 
-class TestModelWithNone(Model):
+class ModelWithNone(Model):
     _primary_key_field = "name"
     name: str
     optional_field: Optional[str]
 
 
-class TestModelWithIP(Model):
+class ModelWithIP(Model):
     _primary_key_field = "name"
     name: str
     ip_network: IPv4Network
@@ -73,13 +73,13 @@ extended_books = [
 extended_books[0].editions = list()
 
 test_models = [
-    TestModelWithNone(name="test", optional_field="test"),
-    TestModelWithNone(name="test2"),
+    ModelWithNone(name="test", optional_field="test"),
+    ModelWithNone(name="test2"),
 ]
 
 test_ip_models = [
-    TestModelWithIP(name="test", ip_network=ip_network("10.10.0.0/24")),
-    TestModelWithIP(name="test2", ip_network=ip_network("192.168.0.0/16")),
+    ModelWithIP(name="test", ip_network=ip_network("10.10.0.0/24")),
+    ModelWithIP(name="test2", ip_network=ip_network("192.168.0.0/16")),
 ]
 
 
@@ -93,11 +93,10 @@ async def redis_store(redis_server):
     )
     store.register_model(Book)
     store.register_model(ExtendedBook)
-    store.register_model(TestModelWithNone)
-    store.register_model(TestModelWithIP)
+    store.register_model(ModelWithNone)
+    store.register_model(ModelWithIP)
     yield store
-    keys = [f"book_%&_{book.title}" for book in books]
-    await store.redis_store.delete(*keys)
+    await store.redis_store.flushall()
 
 
 def test_redis_config_redis_url():
@@ -139,8 +138,8 @@ def test_store_model(redis_store):
 parameters = [
     (pytest.lazy_fixture("redis_store"), books, Book),
     (pytest.lazy_fixture("redis_store"), extended_books, ExtendedBook),
-    (pytest.lazy_fixture("redis_store"), test_models, TestModelWithNone),
-    (pytest.lazy_fixture("redis_store"), test_ip_models, TestModelWithIP),
+    (pytest.lazy_fixture("redis_store"), test_models, ModelWithNone),
+    (pytest.lazy_fixture("redis_store"), test_ip_models, ModelWithIP),
 ]
 
 

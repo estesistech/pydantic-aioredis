@@ -50,7 +50,7 @@ class _AbstractStore(BaseModel):
     life_span_in_seconds: int = None
 
     class Config:
-        """Pydantic schema config"""
+        """Pydantic schema config for _AbstractStore"""
 
         arbitrary_types_allowed = True
         orm_mode = True
@@ -66,9 +66,9 @@ class _AbstractModel(BaseModel):
 
     @staticmethod
     def json_default(obj: Any) -> str:
-        """JSON serializer for objects not serializable by default json library
-        Currently handles:
-         * datetimes -> obj.isoformat
+        """
+        JSON serializer for objects not serializable by default json library
+        Currently handles: datetimes -> obj.isoformat, ipaddress and ipnetwork -> str
         """
 
         if isinstance(obj, (datetime, date)):
@@ -160,6 +160,6 @@ class _AbstractModel(BaseModel):
         raise NotImplementedError("select should be implemented")
 
     class Config:
-        """Pydantic schema config"""
+        """Pydantic schema config for _AbstractModel"""
 
         arbitrary_types_allowed = True
