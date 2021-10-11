@@ -20,6 +20,7 @@ Dependencies
 
    quickstart
    serialization
+   extras
    development
    module
 
