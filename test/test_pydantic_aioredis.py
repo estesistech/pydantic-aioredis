@@ -1,5 +1,7 @@
 """Tests for the redis orm"""
 from datetime import date
+from ipaddress import ip_network
+from ipaddress import IPv4Network
 from random import randint
 from random import sample
 from typing import List
@@ -58,6 +60,12 @@ class TestModelWithNone(Model):
     optional_field: Optional[str]
 
 
+class TestModelWithIP(Model):
+    _primary_key_field = "name"
+    name: str
+    ip_network: IPv4Network
+
+
 extended_books = [
     ExtendedBook(**book.dict(), editions=sample(editions, randint(0, len(editions))))
     for book in books
@@ -67,6 +75,11 @@ extended_books[0].editions = list()
 test_models = [
     TestModelWithNone(name="test", optional_field="test"),
     TestModelWithNone(name="test2"),
+]
+
+test_ip_models = [
+    TestModelWithIP(name="test", ip_network=ip_network("10.10.0.0/24")),
+    TestModelWithIP(name="test2", ip_network=ip_network("192.168.0.0/16")),
 ]
 
 
@@ -81,6 +94,7 @@ async def redis_store(redis_server):
     store.register_model(Book)
     store.register_model(ExtendedBook)
     store.register_model(TestModelWithNone)
+    store.register_model(TestModelWithIP)
     yield store
     keys = [f"book_%&_{book.title}" for book in books]
     await store.redis_store.delete(*keys)
@@ -126,6 +140,7 @@ parameters = [
     (pytest.lazy_fixture("redis_store"), books, Book),
     (pytest.lazy_fixture("redis_store"), extended_books, ExtendedBook),
     (pytest.lazy_fixture("redis_store"), test_models, TestModelWithNone),
+    (pytest.lazy_fixture("redis_store"), test_ip_models, TestModelWithIP),
 ]
 
 
