@@ -2,6 +2,10 @@
 import json
 from datetime import date
 from datetime import datetime
+from ipaddress import IPv4Address
+from ipaddress import IPv4Network
+from ipaddress import IPv6Address
+from ipaddress import IPv6Network
 from typing import Any
 from typing import Dict
 from typing import List
@@ -69,6 +73,10 @@ class _AbstractModel(BaseModel):
 
         if isinstance(obj, (datetime, date)):
             return obj.isoformat()
+
+        if isinstance(obj, (IPv4Network, IPv4Address, IPv6Network, IPv6Address)):
+            return str(obj)
+
         raise TypeError("Type %s not serializable" % type(obj))
 
     @classmethod
