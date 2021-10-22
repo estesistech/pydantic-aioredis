@@ -170,7 +170,11 @@ class Model(_AbstractModel):
             return None
 
         if isinstance(response, list) and columns is None:
-            result = [cls(**cls.deserialize_partially(record)) for record in response]
+            result = [
+                cls(**cls.deserialize_partially(record))
+                for record in response
+                if record != {}
+            ]
         else:
             result = [
                 cls.deserialize_partially(
@@ -180,5 +184,6 @@ class Model(_AbstractModel):
                     }
                 )
                 for record in response
+                if record != {}
             ]
         return result
