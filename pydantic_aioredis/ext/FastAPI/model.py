@@ -3,13 +3,14 @@ from typing import List
 from typing import Optional
 
 from fastapi import HTTPException
-
 from pydantic_aioredis import Model
 
 
 class FastAPIModel(Model):
     """
-    Useful with fastapi, offers extra class methods specific to using pydantic_aioredis with Fastapi
+    Useful with fastapi.
+    Offers extra class methods specific to using pydantic_aioredis
+    with Fastapi
     """
 
     @classmethod
